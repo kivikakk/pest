@@ -159,17 +159,20 @@ impl<'i> Position<'i> {
     /// ```
     #[inline]
     pub fn line_of(&self) -> &str {
-        if self.pos > self.input.len() {
+        let pos = self.pos;
+        let input = self.input;
+
+        if pos > input.len() {
             panic!("position out of bounds");
         }
 
         unsafe {
-            let start = if self.pos == 0 {
+            let start = if pos == 0 {
                 0
             } else {
-                let start = self.input.char_indices()
+                let start = input.char_indices()
                     .rev()
-                    .skip_while(|&(i, _)| i >= self.pos)
+                    .skip_while(|&(i, _)| i >= pos)
                     .find(|&(_, c)| c == '\n');
                 match start {
                     Some((i, _)) => i + 1,
@@ -177,36 +180,36 @@ impl<'i> Position<'i> {
                 }
             };
 
-            let end = if self.input.len() == 0 {
+            let end = if input.len() == 0 {
                 0
-            } else if self.pos == self.input.len() - 1 {
-                let mut end = self.input.len();
+            } else if pos == input.len() - 1 {
+                let mut end = input.len();
 
-                if end > 0 && self.input.slice_unchecked(end - 1, end) == "\n" {
+                if end > 0 && input.slice_unchecked(end - 1, end) == "\n" {
                     end -= 1;
                 }
-                if end > 0 && self.input.slice_unchecked(end - 1, end) == "\r" {
+                if end > 0 && input.slice_unchecked(end - 1, end) == "\r" {
                     end -= 1;
                 }
 
                 end
             } else {
-                let end = self.input.char_indices()
-                    .skip_while(|&(i, _)| i < self.pos)
+                let end = input.char_indices()
+                    .skip_while(|&(i, _)| i < pos)
                     .find(|&(_, c)| c == '\n');
                 let mut end = match end {
                     Some((i, _)) => i,
-                    None => self.input.len()
+                    None => input.len()
                 };
 
-                if end > 0 && self.input.slice_unchecked(end - 1, end) == "\r" {
+                if end > 0 && input.slice_unchecked(end - 1, end) == "\r" {
                     end -= 1;
                 }
 
                 end
             };
 
-            self.input.slice_unchecked(start, end)
+            input.slice_unchecked(start, end)
         }
     }
 
